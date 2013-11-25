@@ -1,0 +1,3 @@
+[submodule "typecoords"]
+	path = typecoords
+	url = https://github.com/daviderwin/typecoords.git
