@@ -1,0 +1,117 @@
+<html>
+
+	<head>
+
+
+		<script src="jquery.js"></script>
+		<script src="d3.js"></script>
+		<script src="typecoords/typecoords.js"></script>
+		<script src="typehop.js"></script>
+
+		<style>
+
+			.container {
+				position: relative;
+				top: 10px;
+				left: 10px;
+
+				width: 600px;
+			}
+
+			p {
+				font-size: 3em;
+				font-family: arial;
+			}
+
+		</style>
+	</head>
+
+	<body>
+
+		<div class="container">
+			<p class="sentence1">
+				The rain in spain falls mainly on the plains.
+			</p>
+			<p class="sentence2">
+				You've tried in vain if you end up insane. 
+			</p>
+		</div>
+
+		<script>
+
+			var s1 = typecoords.chop($(".sentence1")),
+				s2 = typecoords.chop($(".sentence2"));
+
+			typehop.absolutely(s1.offset);
+			typehop.absolutely(s2.offset);
+
+			// cache the original top and left... we're going to mess with these
+			for (var i = 0, l = s1.offset.length; i < l; i++) {
+				s1.offset[i].oTop = s1.offset[i].top;
+				s1.offset[i].oLeft = s1.offset[i].left;
+				s1.offset[i].rotation = 0;
+
+				// give these things some mass and velocity
+				s1.offset[i].vx = 0;
+				s1.offset[i].vy = 0;
+				s1.offset[i].m = 1;
+			};
+
+
+			var force = d3.layout.force()
+				.nodes(s1.offset)
+				.size([1400, 4000]);
+
+			var reseat = function () {
+
+				force.stop();
+
+				for (var i = 0, l = s1.offset.length; i < l; i++) {
+					s1.offset[i].top = s1.offset[i].oTop;
+					s1.offset[i].left = s1.offset[i].oLeft;
+					s1.offset[i].rotation = 0;
+				};
+
+				vis.selectAll('span')
+					.data(s1.offset)
+					.transition(10000)
+					.ease('cubic')
+					.style('top', function (d) { return d.top; })
+					.style('left', function (d) { return d.left; })
+					.style('-webkit-transform', function (d) { return 'rotate(' + d.rotation + 'deg)';});
+
+			};
+
+			var forcer = function (t) {
+				
+				if (t.alpha < .01) {
+					reseat();
+				}
+
+				for (var i = 0, l = s1.offset.length; i < l; i++) {
+					s1.offset[i].top += (Math.random() * 4) - 2;
+					s1.offset[i].left += (Math.random() * 10) - 3;
+					s1.offset[i].rotation += Math.floor(Math.random() * 2) - 1;
+				};
+
+				vis.selectAll('span')
+					.data(s1.offset)
+					.style('top', function (d) { return d.top; })
+					.style('left', function (d) { return d.left; })
+					.style('-webkit-transform', function (d) { return 'rotate(' + d.rotation + 'deg)';});
+
+			};
+
+			force.on("tick", forcer);
+
+			var vis = d3.select('.container');
+			vis.selectAll('span')
+				.data(s1.offset);
+
+			force.start();
+
+		</script>
+
+	</body>
+
+</html>
